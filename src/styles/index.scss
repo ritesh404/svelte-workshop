@@ -59,6 +59,11 @@ body {
 	.character-name {
 		width: 60%;
 	}
+	&.dead {
+		.character-status {
+			font-size: 20px;
+		}
+	}
 }
 .table-title {
 	background: #eee;

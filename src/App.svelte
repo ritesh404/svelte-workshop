@@ -55,7 +55,7 @@
 		characters = characters.map(function(c) {
 			console.log("here");
 			if (c.name === character.name) {
-				const newStatus = c.status === "Alive" ? "Dead" : "Alive";
+				const newStatus = c.status === "Alive" ? "☠️Dead" : "Alive";
 				return { ...c, status: newStatus };
 			}
 			return c;
@@ -87,7 +87,7 @@
 			</div>
 			{#each characters as character}
 				<div
-					class="character table-row"
+					class={`character table-row ${character.status === 'Alive' ? 'alive' : 'dead'}`}
 					on:click={() => toggleStatus(character)}>
 					<span class="character-name">{character.name}</span>
 					<span class="character-status">{character.status}</span>
