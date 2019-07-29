@@ -7,87 +7,60 @@
 	});
 
 	// APP STATE
-	window.characters = [];
+	let characters = [];
+	let searchTerm = "";
+	let isLoading = false;
+
+	const transformResponse = c => ({ status: "Alive", ...c });
 
 	async function fetchAllCharacters() {
+		isLoading = true;
 		try {
 			const response = await fetch(API.ALL, {
 				method: "GET",
 				mode: "cors"
 			});
 			const result = await response.json();
-			return result.results;
+			isLoading = false;
+			return result.results.map(transformResponse);
 		} catch (e) {
+			isLoading = false;
 			return [];
 		}
 	}
 
 	async function fetchCharacter(term) {
+		isLoading = true;
 		try {
 			const response = await fetch(`${API.SEARCH}${term}`, {
 				method: "GET",
 				mode: "cors"
 			});
 			const result = await response.json();
-			return result.results;
+			isLoading = false;
+			return result.results.map(transformResponse);
 		} catch (e) {
+			isLoading = false;
 			return [];
 		}
 	}
 
-	function renderCharacters() {
-		const characterDivs = characters.map(c => domForCharacter(c));
-		const finalList = [title(), ...characterDivs];
-		const container = document.getElementById("character-list");
-		container.innerHTML = "";
-
-		finalList.map(d => container.appendChild(d));
-	}
-
-	function title() {
-		const div = domForCharacter({ name: "NAME" }, "STATUS");
-		div.setAttribute("class", "character table-title");
-		return div;
-	}
-
-	function domForCharacter(chara, alive = "Alive") {
-		const div = document.createElement("div");
-		div.setAttribute("class", "character table-row");
-		const name = document.createElement("span");
-		name.setAttribute("class", "character-name");
-		name.innerText = chara.name;
-		const status = document.createElement("span");
-		status.setAttribute("class", "character-status");
-		status.innerText = alive;
-		div.appendChild(name);
-		div.appendChild(status);
-		div.onclick = function() {
-			console.log("here");
-			this.setAttribute("class", "character table-row dead");
-			const status = jq(this)
-				.find(".character-status")
-				.text("Dead");
-			// status.innerText = "DEAD";
-		};
-		return div;
-	}
-
 	async function handleClick() {
-		const searchTerm = jq("#search-input").val();
-		if (searchTerm === "") {
-			const results = await fetchAllCharacters();
-			window.characters = results;
-		} else {
-			const results = await fetchCharacter(searchTerm);
-			window.characters = results;
-		}
-
-		renderCharacters();
+		searchTerm === ""
+			? (characters = await fetchAllCharacters())
+			: (characters = await fetchCharacter(searchTerm));
 	}
 
-	jq(document).ready(function() {
-		jq("#search-button").on("click", handleClick);
-	});
+	function toggleStatus(character) {
+		characters = characters.map(function(c) {
+			console.log("here");
+			if (c.name === character.name) {
+				const newStatus = c.status === "Alive" ? "Dead" : "Alive";
+				return { ...c, status: newStatus };
+			}
+			return c;
+		});
+	}
 </script>
 
 <header class="container">
@@ -98,14 +71,31 @@
 <section class="container">
 	<div class="row search-box">
 		<input
-			autofocus
 			type="text"
 			id="search-input"
-			value=""
+			bind:value={searchTerm}
 			placeholder="Enter Character Name" />
-		<button id="search-button">Search</button>
+		<button id="search-button" on:click={handleClick}>Search</button>
 	</div>
 </section>
 <section class="container">
-	<div id="character-list" />
+	<div id="character-list">
+		{#if characters.length > 0}
+			<div class="character table-title">
+				<span class="character-name">NAME</span>
+				<span class="character-status">STATUS</span>
+			</div>
+			{#each characters as character}
+				<div
+					class="character table-row"
+					on:click={() => toggleStatus(character)}>
+					<span class="character-name">{character.name}</span>
+					<span class="character-status">{character.status}</span>
+				</div>
+			{/each}
+		{/if}
+		{#if isLoading}
+			<div class="row">Loading...</div>
+		{/if}
+	</div>
 </section>
