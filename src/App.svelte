@@ -1,5 +1,9 @@
 <script>
 	import jq from "jquery";
+	import Section from "./components/Section.svelte";
+	import SearchBox from "./components/SearchBox.svelte";
+	import Header from "./components/Header.svelte";
+	import CharacterList from "./components/CharacterList.svelte";
 
 	const API = Object.freeze({
 		ALL: "https://swapi.co/api/people/",
@@ -11,6 +15,8 @@
 	let searchTerm = "";
 	let isLoading = false;
 
+	const transformResponse = c => ({ status: "Alive", ...c });
+
 	async function fetchAllCharacters() {
 		isLoading = true;
 		try {
@@ -20,7 +26,7 @@
 			});
 			const result = await response.json();
 			isLoading = false;
-			return result.results.map(c => ({ status: "Alive", ...c }));
+			return result.results.map(transformResponse);
 		} catch (e) {
 			isLoading = false;
 			return [];
@@ -36,7 +42,7 @@
 			});
 			const result = await response.json();
 			isLoading = false;
-			return result.results;
+			return result.results.map(transformResponse);
 		} catch (e) {
 			isLoading = false;
 			return [];
@@ -49,9 +55,9 @@
 			: (characters = await fetchCharacter(searchTerm));
 	}
 
-	function toggleStatus(character) {
+	function toggleStatus(e) {
+		const character = e.detail;
 		characters = characters.map(function(c) {
-			console.log("here");
 			if (c.name === character.name) {
 				const newStatus = c.status === "Alive" ? "Dead" : "Alive";
 				return { ...c, status: newStatus };
@@ -61,39 +67,14 @@
 	}
 </script>
 
-<header class="container">
-	<div class="row title">
-		<h1>God Of Star Wars!</h1>
-	</div>
-</header>
-<section class="container">
-	<div class="row search-box">
-		<input
-			type="text"
-			id="search-input"
-			bind:value={searchTerm}
-			placeholder="Enter Character Name" />
-		<button id="search-button" on:click={handleClick}>Search</button>
-	</div>
-</section>
-<section class="container">
-	<div id="character-list">
-		{#if characters.length > 0}
-			<div class="character table-title">
-				<span class="character-name">NAME</span>
-				<span class="character-status">STATUS</span>
-			</div>
-			{#each characters as character}
-				<div
-					class="character table-row"
-					on:click={() => toggleStatus(character)}>
-					<span class="character-name">{character.name}</span>
-					<span class="character-status">{character.status}</span>
-				</div>
-			{/each}
-		{/if}
-		{#if isLoading}
-			<div class="row">Loading...</div>
-		{/if}
-	</div>
-</section>
+<Header />
+<Section>
+	<SearchBox
+		on:termchange={e => {
+			searchTerm = e.detail;
+		}}
+		on:search={handleClick} />
+</Section>
+<Section>
+	<CharacterList {characters} {isLoading} on:togglestatus={toggleStatus} />
+</Section>
