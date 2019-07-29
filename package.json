@@ -68,6 +68,7 @@
 		}
 	},
 	"dependencies": {
+		"jquery": "^3.4.1",
 		"whatwg-fetch": "^3.0.0"
 	}
 }
