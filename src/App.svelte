@@ -65,10 +65,21 @@
 		div.appendChild(status);
 		div.onclick = function() {
 			console.log("here");
-			this.setAttribute("class", "character table-row dead");
+
 			const status = jq(this)
 				.find(".character-status")
-				.text("Dead");
+				.text();
+			if (status === "Alive") {
+				this.setAttribute("class", "character table-row dead");
+				jq(this)
+					.find(".character-status")
+					.text("☠️Dead");
+			} else {
+				this.setAttribute("class", "character table-row alive");
+				jq(this)
+					.find(".character-status")
+					.text("Alive");
+			}
 			// status.innerText = "DEAD";
 		};
 		return div;
